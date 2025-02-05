@@ -38,6 +38,7 @@ resource CreateAKSCluster 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
     Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Credential $Credential
     $ResourceGroup = Get-AzResourceGroup
     $ResourceGroupName = $ResourceGroup.ResourceGroupName
+    $Location = $ResourceGroup.Location
     $Version = Get-AzAksVersion -Location $Location | Sort-Object OrchestratorVersion | Select-Object -ExpandProperty OrchestratorVersion -First 1
     New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateUri 'https://raw.githubusercontent.com/WayneHoggett-ACG/aks-maintain-draft/refs/heads/main/1.2/aks.bicep' -kubernetesVersion $Version
     '''
