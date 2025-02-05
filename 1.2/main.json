@@ -1,0 +1,92 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "1940724306093919092"
+    }
+  },
+  "parameters": {
+    "tenantId": {
+      "type": "string",
+      "defaultValue": "84f1e4ea-8554-43e1-8709-f0b8589ea118",
+      "metadata": {
+        "description": "The tenant ID for the Service Principal (Application), use the default value for the Sandbox"
+      }
+    },
+    "applicationClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "The Client ID for the Service Principal (Application). Retrieve this value from the details of your Sandbox instance."
+      }
+    },
+    "applicationClientSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The Client Secret for the Service Principal (Application). Retrieve this value from the details of your Sandbox instance."
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "osDiskSizeGB": 128,
+    "agentCount": 1,
+    "agentVMSize": "Standard_D2s_v3",
+    "osTypeLinux": "Linux",
+    "uniqueSuffix": "[uniqueString(resourceGroup().id)]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2020-10-01",
+      "name": "CreateAKSCluster",
+      "location": "[variables('location')]",
+      "kind": "AzurePowerShell",
+      "properties": {
+        "environmentVariables": [
+          {
+            "name": "APP_ID",
+            "value": "[parameters('applicationClientId')]"
+          },
+          {
+            "name": "CLIENT_SECRET",
+            "value": "[parameters('applicationClientSecret')]"
+          },
+          {
+            "name": "TENANT_ID",
+            "value": "[parameters('tenantId')]"
+          },
+          {
+            "name": "AKS_CLUSTER_NAME",
+            "value": "[format('aks-{0}', variables('uniqueSuffix'))]"
+          },
+          {
+            "name": "AKS_AGENTPOOL_OSDISKSIZEGB",
+            "value": "[format('{0}', variables('osDiskSizeGB'))]"
+          },
+          {
+            "name": "AKS_AGENTPOOL_COUNT",
+            "value": "[format('{0}', variables('agentCount'))]"
+          },
+          {
+            "name": "AKS_AGENTPOOL_VMSIZE",
+            "value": "[variables('agentVMSize')]"
+          },
+          {
+            "name": "AKS_AGENTPOOL_OSTYPE",
+            "value": "[variables('osTypeLinux')]"
+          }
+        ],
+        "forceUpdateTag": "1",
+        "azPowerShellVersion": "10.1",
+        "scriptContent": "    sudo apt update\n    sudo apt install openssh-client\n    $SecurePassword = ConvertTo-SecureString \"${env:CLIENT_SECRET}\" -AsPlainText -Force\n    $TenantId = \"${env:TENANT_ID}\"\n    $ApplicationId = \"${env:APP_ID}\"\n    $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $SecurePassword\n    Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Credential $Credential\n    $ResourceGroup = Get-AzResourceGroup\n    $ResourceGroupName = $ResourceGroup.ResourceGroupName\n    $Location = $ResourceGroup.Location\n    $Version = Get-AzAksVersion -Location $Location | Sort-Object OrchestratorVersion | Select-Object -ExpandProperty OrchestratorVersion -First 1\n    New-AzAksCluster -Name ${env:AKS_CLUSTER_NAME} -ResourceGroupName $ResourceGroupName -Location $Location -KubernetesVersion $Version -NodeCount ${env:AKS_AGENTPOOL_COUNT} -NodeOsDiskSize ${env:AKS_AGENTPOOL_OSDISKSIZEGB} -NodeVmSize ${env:AKS_AGENTPOOL_VMSIZE} -NodeOsSKU ${env:AKS_AGENTPOOL_OSTYPE} -GenerateSshKey\n    ",
+        "supportingScriptUris": [],
+        "timeout": "PT30M",
+        "cleanupPreference": "OnSuccess",
+        "retentionInterval": "PT1H"
+      }
+    }
+  ]
+}
