@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "1940724306093919092"
+      "templateHash": "17726502755540563235"
     }
   },
   "parameters": {
@@ -30,12 +30,7 @@
     }
   },
   "variables": {
-    "location": "[resourceGroup().location]",
-    "osDiskSizeGB": 128,
-    "agentCount": 1,
-    "agentVMSize": "Standard_D2s_v3",
-    "osTypeLinux": "Linux",
-    "uniqueSuffix": "[uniqueString(resourceGroup().id)]"
+    "location": "[resourceGroup().location]"
   },
   "resources": [
     {
@@ -57,31 +52,11 @@
           {
             "name": "TENANT_ID",
             "value": "[parameters('tenantId')]"
-          },
-          {
-            "name": "AKS_CLUSTER_NAME",
-            "value": "[format('aks-{0}', variables('uniqueSuffix'))]"
-          },
-          {
-            "name": "AKS_AGENTPOOL_OSDISKSIZEGB",
-            "value": "[format('{0}', variables('osDiskSizeGB'))]"
-          },
-          {
-            "name": "AKS_AGENTPOOL_COUNT",
-            "value": "[format('{0}', variables('agentCount'))]"
-          },
-          {
-            "name": "AKS_AGENTPOOL_VMSIZE",
-            "value": "[variables('agentVMSize')]"
-          },
-          {
-            "name": "AKS_AGENTPOOL_OSTYPE",
-            "value": "[variables('osTypeLinux')]"
           }
         ],
         "forceUpdateTag": "1",
         "azPowerShellVersion": "10.1",
-        "scriptContent": "    sudo apt update\n    sudo apt install openssh-client\n    $SecurePassword = ConvertTo-SecureString \"${env:CLIENT_SECRET}\" -AsPlainText -Force\n    $TenantId = \"${env:TENANT_ID}\"\n    $ApplicationId = \"${env:APP_ID}\"\n    $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $SecurePassword\n    Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Credential $Credential\n    $ResourceGroup = Get-AzResourceGroup\n    $ResourceGroupName = $ResourceGroup.ResourceGroupName\n    $Location = $ResourceGroup.Location\n    $Version = Get-AzAksVersion -Location $Location | Sort-Object OrchestratorVersion | Select-Object -ExpandProperty OrchestratorVersion -First 1\n    New-AzAksCluster -Name ${env:AKS_CLUSTER_NAME} -ResourceGroupName $ResourceGroupName -Location $Location -KubernetesVersion $Version -NodeCount ${env:AKS_AGENTPOOL_COUNT} -NodeOsDiskSize ${env:AKS_AGENTPOOL_OSDISKSIZEGB} -NodeVmSize ${env:AKS_AGENTPOOL_VMSIZE} -NodeOsSKU ${env:AKS_AGENTPOOL_OSTYPE} -GenerateSshKey\n    ",
+        "scriptContent": "    $SecurePassword = ConvertTo-SecureString \"${env:CLIENT_SECRET}\" -AsPlainText -Force\n    $TenantId = \"${env:TENANT_ID}\"\n    $ApplicationId = \"${env:APP_ID}\"\n    $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApplicationId, $SecurePassword\n    Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Credential $Credential\n    $ResourceGroup = Get-AzResourceGroup\n    $ResourceGroupName = $ResourceGroup.ResourceGroupName\n    $Version = Get-AzAksVersion -Location $Location | Sort-Object OrchestratorVersion | Select-Object -ExpandProperty OrchestratorVersion -First 1\n    New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateUri 'https://raw.githubusercontent.com/WayneHoggett-ACG/aks-maintain-draft/refs/heads/main/1.2/aks.bicep' -kubernetesVersion $Version\n    ",
         "supportingScriptUris": [],
         "timeout": "PT30M",
         "cleanupPreference": "OnSuccess",
