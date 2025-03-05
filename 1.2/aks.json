@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "15092373865320218872"
+      "templateHash": "11108007230863488336"
     }
   },
   "parameters": {
@@ -31,6 +31,10 @@
     },
     "kubernetesVersion": {
       "type": "string"
+    },
+    "enableMaintenanceConfigurations": {
+      "type": "bool",
+      "defaultValue": false
     }
   },
   "variables": {
@@ -66,6 +70,7 @@
       }
     },
     {
+      "condition": "[parameters('enableMaintenanceConfigurations')]",
       "type": "Microsoft.ContainerService/managedClusters/maintenanceConfigurations",
       "apiVersion": "2024-06-02-preview",
       "name": "[format('{0}/{1}', format('aks-{0}', variables('uniqueSuffix')), 'aksManagedAutoUpgradeSchedule')]",
@@ -87,6 +92,7 @@
       ]
     },
     {
+      "condition": "[parameters('enableMaintenanceConfigurations')]",
       "type": "Microsoft.ContainerService/managedClusters/maintenanceConfigurations",
       "apiVersion": "2024-06-02-preview",
       "name": "[format('{0}/{1}', format('aks-{0}', variables('uniqueSuffix')), 'aksManagedNodeOSUpgradeSchedule')]",

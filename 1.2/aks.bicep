@@ -4,6 +4,7 @@ param agentCount int = 1
 param agentVMSize string = 'Standard_D2s_v3'
 param osTypeLinux string = 'Linux'
 param kubernetesVersion string
+param enableMaintenanceConfigurations bool = false
 
 var uniqueSuffix = uniqueString(resourceGroup().id)
 
@@ -34,7 +35,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-06-02-previ
   }
 }
 
-resource aksManagedAutoUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2024-06-02-preview' = {
+resource aksManagedAutoUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2024-06-02-preview' =  if (enableMaintenanceConfigurations) {
   parent: aksCluster
   name: 'aksManagedAutoUpgradeSchedule'
   properties: {
@@ -52,7 +53,7 @@ resource aksManagedAutoUpgradeSchedule 'Microsoft.ContainerService/managedCluste
   }
 }
 
-resource aksManagedNodeOSUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2024-06-02-preview' = {
+resource aksManagedNodeOSUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2024-06-02-preview' = if (enableMaintenanceConfigurations) {
   parent: aksCluster
   name: 'aksManagedNodeOSUpgradeSchedule'
   properties: {
