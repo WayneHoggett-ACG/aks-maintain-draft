@@ -33,3 +33,39 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-06-02-previ
     ]
   }
 }
+
+resource aksManagedAutoUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2024-06-02-preview' = {
+  parent: aksCluster
+  name: 'aksManagedAutoUpgradeSchedule'
+  properties: {
+    maintenanceWindow: {
+      durationHours: 6
+      schedule: {
+        weekly: {
+          dayOfWeek: 'Thursday'
+          intervalWeeks: 2
+        }
+      }
+      startTime: '00:00'
+      utcOffset: '+10:00'
+    }
+  }
+}
+
+resource aksManagedNodeOSUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2024-06-02-preview' = {
+  parent: aksCluster
+  name: 'aksManagedNodeOSUpgradeSchedule'
+  properties: {
+    maintenanceWindow: {
+      durationHours: 6
+      schedule: {
+        weekly: {
+          dayOfWeek: 'Tuesday'
+          intervalWeeks: 1
+        }
+      }
+      startTime: '00:00'
+      utcOffset: '+10:00'
+    }
+  }
+}

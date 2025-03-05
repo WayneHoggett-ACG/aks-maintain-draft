@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "12356429597266740546"
+      "templateHash": "15092373865320218872"
     }
   },
   "parameters": {
@@ -64,6 +64,48 @@
           }
         ]
       }
+    },
+    {
+      "type": "Microsoft.ContainerService/managedClusters/maintenanceConfigurations",
+      "apiVersion": "2024-06-02-preview",
+      "name": "[format('{0}/{1}', format('aks-{0}', variables('uniqueSuffix')), 'aksManagedAutoUpgradeSchedule')]",
+      "properties": {
+        "maintenanceWindow": {
+          "durationHours": 6,
+          "schedule": {
+            "weekly": {
+              "dayOfWeek": "Thursday",
+              "intervalWeeks": 2
+            }
+          },
+          "startTime": "00:00",
+          "utcOffset": "+10:00"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerService/managedClusters', format('aks-{0}', variables('uniqueSuffix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ContainerService/managedClusters/maintenanceConfigurations",
+      "apiVersion": "2024-06-02-preview",
+      "name": "[format('{0}/{1}', format('aks-{0}', variables('uniqueSuffix')), 'aksManagedNodeOSUpgradeSchedule')]",
+      "properties": {
+        "maintenanceWindow": {
+          "durationHours": 6,
+          "schedule": {
+            "weekly": {
+              "dayOfWeek": "Tuesday",
+              "intervalWeeks": 1
+            }
+          },
+          "startTime": "00:00",
+          "utcOffset": "+10:00"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerService/managedClusters', format('aks-{0}', variables('uniqueSuffix')))]"
+      ]
     }
   ]
 }
