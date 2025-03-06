@@ -7,6 +7,9 @@ param applicationClientId string
 @description('The Client Secret for the Service Principal (Application). Retrieve this value from the details of your Sandbox instance.')
 param applicationClientSecret string
 
+metadata name = 'Demo: Automatically Upgrade AKS'
+metadata description = 'Deploy this template to follow-along with the demonstration.'
+
 var location  = resourceGroup().location
 
 resource CreateAKSCluster 'Microsoft.Resources/deploymentScripts@2020-10-01' = {

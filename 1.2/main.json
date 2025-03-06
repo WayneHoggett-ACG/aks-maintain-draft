@@ -5,8 +5,10 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "792749172654258157"
-    }
+      "templateHash": "15891201068604737206"
+    },
+    "name": "Demo: Automatically Upgrade AKS",
+    "description": "Deploy this template to follow-along with the demonstration."
   },
   "parameters": {
     "tenantId": {
