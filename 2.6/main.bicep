@@ -9,7 +9,7 @@ param applicationClientSecret string
 
 var location  = resourceGroup().location
 var osDiskSizeGB  = 128
-var agentCount = 1
+var agentCount = 2
 var agentVMSize = 'Standard_D2s_v3'
 var osTypeLinux = 'Linux'
 var uniqueSuffix = uniqueString(resourceGroup().id)
@@ -48,6 +48,11 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2024-06-02-previ
         mode: 'System'
       }
     ]
+    ingressProfile: {
+      webAppRouting: {
+        enabled: true
+      }
+    }
   }
 }
 
@@ -60,7 +65,6 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10
     }
   }
 }
-
 
 resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'ds-deploymentscript'
@@ -108,8 +112,16 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
     az aks get-credentials --resource-group $RG --name $AKS
     # Create the Namespace and Application
     kubectl create namespace globalmanticsbooks --save-config
-    kubectl create deployment web --image=$ACR_LOGIN_SERVER/web:v1 --namespace globalmanticsbooks --replicas=1 --port=80
-    kubectl create deployment api --image=$ACR_LOGIN_SERVER/api:v1 --namespace globalmanticsbooks --replicas=1 --port=5000
+    kubectl config set-context --current --namespace=globalmanticsbooks
+    kubectl create deployment web --image=$ACR_LOGIN_SERVER/web:v1 --replicas=1 --port=80
+    kubectl create deployment api --image=$ACR_LOGIN_SERVER/api:v1 --replicas=1 --port=5000
+    kubectl expose deployment/api --port=80 --target-port=5000
+    kubectl set env deployment/web BOOKS_API_URL=http://api
+    kubectl expose deployment/web --port=80 --target-port=80
+    # Create an Ingress for the web app
+    kubectl create ingress web --rule="/=web:80" --class=webapprouting.kubernetes.azure.com
+    # Patch in the pathType to Prefix
+    kubectl patch ingress web --type='json' -p='[{"op": "add", "path": "/spec/rules/0/http/paths/0/pathType", "value": "Prefix"}]'
     '''
     supportingScriptUris: []
     timeout: 'PT30M'

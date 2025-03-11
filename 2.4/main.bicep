@@ -99,10 +99,22 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
     kubectl create namespace globalmanticsbooks --save-config
     kubectl create deployment web --image=$ACR_LOGIN_SERVER/web:v1 --namespace globalmanticsbooks --replicas=1 --port=80
     kubectl create deployment api --image=$ACR_LOGIN_SERVER/api:v1 --namespace globalmanticsbooks --replicas=1 --port=5000
+    LAW_ID=$(az monitor log-analytics workspace list --resource-group $RG --output tsv --query [].id)
+    az aks enable-addons --addon monitoring --name $AKS --resource-group $RG --workspace-resource-id $LAW_ID --enable-msi-auth-for-monitoring=false
     '''
     supportingScriptUris: []
     timeout: 'PT30M'
     cleanupPreference: 'OnSuccess'
     retentionInterval: 'PT1H'
+  }
+}
+
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
+  name: 'law-default'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
   }
 }
